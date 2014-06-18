@@ -12,17 +12,21 @@ fs.readFile('messages.txt', {'encoding': 'utf-8'}, function (err, data) {
 
     app.use(bodyParser.urlencoded());
     app.use(cookieParser());
+    app.use(express.static(__dirname + '/public'));
 
     app.engine('jade', require('jade').__express);
 
     app.get('/', function(req, res) {
         var arr = messages.map(function (item) {
-            return '<p>'+ item.user + ': ' + item.message+'</p>'
-        });
-        res.render('start.jade', {messages: arr.join('')}, function (err, data) {
-            res.send(data);
+                return {
+                    user: item.user,
+                    message: item.message
+                }
         });
 
+        res.render('start.jade', { messages: arr }, function (err, data) {
+            res.send(data);
+        });
     });
 
 

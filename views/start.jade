@@ -2,10 +2,14 @@ doctype html
 html(lang="en")
   head
     title= pageTitle
+    link(href = '/public/css/css.css')
   body
     h1 Start Page
+    img(src = '/public/pic/pic.jpeg')
     form(method = 'post', action = '/submit')
       input(type = 'text', name = 'user')
       textarea(name = 'message')
       input(type = 'submit')
-    #output !{messages}
+    #output
+      each val in messages
+       include message
