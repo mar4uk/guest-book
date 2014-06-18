@@ -1,0 +1,10 @@
+doctype html
+html(lang="en")
+  head
+    title= Admin
+  body
+    h1 Admin Page
+    form(method = 'post', action = '/authorize')
+      input(type = 'text', name = 'login')
+      input(type = 'password', name = 'password')
+      input(type = 'submit')
