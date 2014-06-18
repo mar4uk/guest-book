@@ -1,0 +1,8 @@
+{
+    "name": "guest-book",
+    "description": "guest-book with express",
+    "private": true,
+    "dependencies": {
+        "express": ">=4.4.x"
+    }
+}
