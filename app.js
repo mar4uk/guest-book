@@ -13,13 +13,19 @@ fs.readFile('messages.txt', {'encoding': 'utf-8'}, function (err, data) {
     app.engine('jade', require('jade').__express);
 
     app.get('/', function(req, res) {
-        res.render('start.jade', {messages: messages.join('<br>')}, function (err, data) {
+        var arr = messages.map(function (item) {
+            return '<p>'+ item.user + ': ' + item.message+'</p>'
+        });
+        res.render('start.jade', {messages: arr.join('')}, function (err, data) {
             res.send(data);
         });
     });
 
     app.post('/submit', function(req, res) {
-        messages.push(escapeSymbols(req.body.message));
+        messages.push({
+            user: escapeSymbols(req.body.user),
+            message: escapeSymbols(req.body.message)
+        });
         fs.writeFile('messages.txt', JSON.stringify(messages), function (err) {
             if (err) throw err;
             res.redirect('/');

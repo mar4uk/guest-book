@@ -5,6 +5,7 @@ html(lang="en")
   body
     h1 Start Page
     form(method = 'post', action = '/submit')
+      input(type = 'text', name = 'user')
       textarea(name = 'message')
       input(type = 'submit')
     #output !{messages}
