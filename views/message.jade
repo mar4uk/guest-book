@@ -1,6 +1,6 @@
 .message(id = val.id)
-    .user= val.user
+    .user #{val.user}
         span :
-    .message-text= val.message
+    .message-text !{val.message}
     if admin
-        a.remove(href = '/remove?id='+val.id) x
+        a.remove(href = '/remove?id='+ val.id ) x
