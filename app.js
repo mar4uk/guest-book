@@ -3,6 +3,7 @@ var app = express();
 var fs = require("fs");
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
+var serveStatic = require('serve-static');
 
 fs.readFile('messages.txt', {'encoding': 'utf-8'}, function (err, data) {
     var messages = [];
@@ -13,7 +14,7 @@ fs.readFile('messages.txt', {'encoding': 'utf-8'}, function (err, data) {
 
     app.use(bodyParser.urlencoded());
     app.use(cookieParser());
-    app.use(express.static(__dirname + '/public'));
+    app.use(serveStatic('public'));
 
     app.engine('jade', require('jade').__express);
 
