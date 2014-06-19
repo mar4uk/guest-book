@@ -1,2 +1,25 @@
-body {margin: 0; padding: 0;}
-#output {background-color: yellow}
+.output {
+    margin-top: 30px;
+}
+.message {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid gray;
+    padding: 10px;
+    margin-bottom: 10px;
+    width: 400px;
+}
+.message .user {
+    margin-bottom: 5px;
+}
+
+.message .message-text {
+    font-style: italic;
+}
+
+.message .remove {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    cursor: pointer;
+}

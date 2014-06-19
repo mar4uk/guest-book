@@ -2,7 +2,7 @@ doctype html
 html(lang="en")
   head
     title= pageTitle
-    link(href = 'css/css.css')
+    link(href = 'css/css.css', rel='stylesheet')
     script(src = '//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js')
     script(src = 'js/script.js')
   body
@@ -12,11 +12,11 @@ html(lang="en")
       h2 Hello,&nbsp;
         span= admin
 
-    img(src = 'pic/pic.jpeg')
     form(method = 'post', action = '/submit')
-      input(type = 'text', name = 'user')
-      textarea(name = 'message')
+      input(type = 'text', name = 'user', placeholder = 'имя')
+      div
+        textarea(name = 'message', placeholder = 'сообщение')
       input(type = 'submit')
-    #output
+    .output
       each val in messages
        include message
