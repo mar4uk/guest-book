@@ -3,4 +3,4 @@
         span :
     .message-text= val.message
     if admin
-        button.remove x
+        a.remove(href = '/remove?id='+val.id) x

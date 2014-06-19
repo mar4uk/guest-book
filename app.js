@@ -31,8 +31,8 @@ fs.readFile('messages.txt', {'encoding': 'utf-8'}, function (err, data) {
         });
     });
 
-    app.post('/remove', function(req, res) {
-        var msgIdToRemove = req.body.id;
+    app.get('/remove*', function(req, res) {
+        var msgIdToRemove = req.param('id');
         var arr = removeById(messages, msgIdToRemove);
         fs.writeFile('messages.txt', JSON.stringify(arr), function (err) {
             if (err) throw err;

@@ -19,7 +19,15 @@
 
 .message .remove {
     position: absolute;
+    display: block;
     top: 5px;
     right: 5px;
-    cursor: pointer;
+    border: 1px solid gray;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+    text-decoration: none;
+    background-color: #eee;
+    color: black;
 }
