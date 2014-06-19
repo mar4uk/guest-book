@@ -19,15 +19,18 @@ fs.readFile('messages.txt', {'encoding': 'utf-8'}, function (err, data) {
 
     app.get('/', function(req, res) {
         var adminNameFromCookie = req.cookies.authorized;
-        var arr = messages.map(function (item) {
-                return {
-                    user: item.user,
-                    message: item.message
-                }
-        });
-
-        res.render('start.jade', { messages: arr, admin: adminNameFromCookie}, function (err, data) {
+        res.render('start.jade', { messages: messages, admin: adminNameFromCookie}, function (err, data) {
             res.send(data);
+        });
+    });
+
+    app.post('/remove', function(req, res) {
+        var msgIdToRemove = req.body.id;
+        var arr = removeById(messages, msgIdToRemove);
+        fs.writeFile('messages.txt', JSON.stringify(arr), function (err) {
+            console.log('callback');
+            if (err) throw err;
+            res.redirect('/');
         });
     });
 
@@ -40,37 +43,39 @@ fs.readFile('messages.txt', {'encoding': 'utf-8'}, function (err, data) {
 
         app.get('/admin', function(req, res) {
             var adminNameFromCookie = req.cookies.authorized;
-            if (adminNameFromCookie) {
-                res.send(adminNameFromCookie + ', Вы уже авторизованы');
-            } else {
-                res.render('admin.jade', function (err, data) {
-                    res.send(data);
-                });
-            }
+
+            res.render('admin.jade', {admin: adminNameFromCookie}, function (err, data) {
+                res.send(data);
+            });
+
         });
 
         app.post('/authorize', function(req, res) {
+            var flag = true;
             if (!err && data.length !=0) {
                 admins.forEach(function (admin) {
+                    console.log('login: '+ admin.login + '== '+ req.body.login + ' pass: ' + admin.password + '==' + req.body.password);
                     if (admin.login == req.body.login && admin.password == req.body.password) {
+                        flag = false;
                         res.cookie('authorized', admin.login);
                         res.redirect('/');
-                        console.log("Successfull authorization");
-                    }
-                    else {
-                        res.send("wrong login or/and password");
                     }
                 });
+                if (flag) {res.send("wrong login or/and password");}
             } else {
-                res.send("wrong login or/and password");
+                res.send("wrong login or/and password bla");
             }
         });
     });
 
     app.post('/submit', function(req, res) {
+        var date = new Date();
+        var etaloneDate = new Date(3600*24*1000);
+        var id = (date - etaloneDate).toString();
         messages.push({
             user: escapeSymbols(req.body.user),
-            message: escapeSymbols(req.body.message)
+            message: escapeSymbols(req.body.message),
+            id: id
         });
         fs.writeFile('messages.txt', JSON.stringify(messages), function (err) {
             if (err) throw err;
@@ -96,3 +101,12 @@ function escapeSymbols(msg) {
             .replace(/"/g, '&quot;');
 }
 
+function removeById(arr, id) {
+    for (var i = 0; i < arr.length; i++) {
+        var item = arr[i];
+        if (item.id == id) {
+            arr.splice(i,1);
+        }
+    }
+    return arr;
+}

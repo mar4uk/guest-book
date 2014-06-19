@@ -4,6 +4,10 @@ html(lang="en")
     title= Admin
   body
     h1 Admin Page
+    if admin
+        p
+            span=admin
+            span , вы уже авторизованы! хотите войти под другим пользователем?
     form(method = 'post', action = '/authorize')
       input(type = 'text', name = 'login')
       input(type = 'password', name = 'password')
