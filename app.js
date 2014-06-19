@@ -6,6 +6,7 @@ var cookieParser = require('cookie-parser');
 
 fs.readFile('messages.txt', {'encoding': 'utf-8'}, function (err, data) {
     var messages = [];
+
     if (!err && data.length !=0) {
         messages = parser(data);
     }
@@ -17,6 +18,7 @@ fs.readFile('messages.txt', {'encoding': 'utf-8'}, function (err, data) {
     app.engine('jade', require('jade').__express);
 
     app.get('/', function(req, res) {
+        var adminNameFromCookie = req.cookies.authorized;
         var arr = messages.map(function (item) {
                 return {
                     user: item.user,
@@ -24,7 +26,7 @@ fs.readFile('messages.txt', {'encoding': 'utf-8'}, function (err, data) {
                 }
         });
 
-        res.render('start.jade', { messages: arr }, function (err, data) {
+        res.render('start.jade', { messages: arr, admin: adminNameFromCookie}, function (err, data) {
             res.send(data);
         });
     });
@@ -37,8 +39,9 @@ fs.readFile('messages.txt', {'encoding': 'utf-8'}, function (err, data) {
         }
 
         app.get('/admin', function(req, res) {
-            if (req.cookies.authorized) {
-                res.send('Вы уже авторизованы');
+            var adminNameFromCookie = req.cookies.authorized;
+            if (adminNameFromCookie) {
+                res.send(adminNameFromCookie + ', Вы уже авторизованы');
             } else {
                 res.render('admin.jade', function (err, data) {
                     res.send(data);
@@ -50,7 +53,7 @@ fs.readFile('messages.txt', {'encoding': 'utf-8'}, function (err, data) {
             if (!err && data.length !=0) {
                 admins.forEach(function (admin) {
                     if (admin.login == req.body.login && admin.password == req.body.password) {
-                        res.cookie('authorized', 'true');
+                        res.cookie('authorized', admin.login);
                         res.redirect('/');
                         console.log("Successfull authorization");
                     }
