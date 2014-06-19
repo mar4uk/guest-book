@@ -20,9 +20,7 @@ fs.readFile('messages.txt', {'encoding': 'utf-8'}, function (err, data) {
 
     app.get('/', function(req, res) {
         var userAgent = req.get('User-Agent');
-        var isYaBrowser = userAgent.indexOf('YaBrowser') == -1
-            ? false
-            : true;
+        var isYaBrowser = userAgent.indexOf('YaBrowser') !== -1;
         var yandexUser = isYaBrowser && 'Пользователь Яндекс Браузера';
         var adminNameFromCookie = req.cookies.authorized || yandexUser;
 
