@@ -4,11 +4,16 @@ html(lang="en")
     title= Admin
   body
     h1 Admin Page
+    if isYaUser
+      p Вы пользователь Яндекс Браузера, Вам не нужно авторизовываться!
+
     if admin
         p
             span=admin
-            span , вы уже авторизованы! хотите войти под другим пользователем?
-    form(method = 'post', action = '/authorize')
-      input(type = 'text', name = 'login', placeholder = 'логин')
-      input(type = 'password', name = 'password', placeholder = 'пароль')
-      input(type = 'submit')
+            span , вы уже авторизованы!
+        a(href = '/signout') Выйти?
+    if !(isYaUser||admin)
+      form(method = 'post', action = '/authorize')
+        input(type = 'text', name = 'login', placeholder = 'логин')
+        input(type = 'password', name = 'password', placeholder = 'пароль')
+        input(type = 'submit')

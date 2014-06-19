@@ -19,7 +19,13 @@ fs.readFile('messages.txt', {'encoding': 'utf-8'}, function (err, data) {
     app.engine('jade', require('jade').__express);
 
     app.get('/', function(req, res) {
-        var adminNameFromCookie = req.cookies.authorized;
+        var userAgent = req.get('User-Agent');
+        var isYaBrowser = userAgent.indexOf('YaBrowser') == -1
+            ? false
+            : true;
+        var yandexUser = isYaBrowser && 'Пользователь Яндекс Браузера';
+        var adminNameFromCookie = req.cookies.authorized || yandexUser;
+
         res.render('start.jade', { messages: messages, admin: adminNameFromCookie}, function (err, data) {
             res.send(data);
         });
@@ -29,7 +35,6 @@ fs.readFile('messages.txt', {'encoding': 'utf-8'}, function (err, data) {
         var msgIdToRemove = req.body.id;
         var arr = removeById(messages, msgIdToRemove);
         fs.writeFile('messages.txt', JSON.stringify(arr), function (err) {
-            console.log('callback');
             if (err) throw err;
             res.redirect('/');
         });
@@ -43,9 +48,14 @@ fs.readFile('messages.txt', {'encoding': 'utf-8'}, function (err, data) {
         }
 
         app.get('/admin', function(req, res) {
+            var userAgent = req.get('User-Agent');
+            var isYaBrowser = userAgent.indexOf('YaBrowser') == -1
+                ? false
+                : true;
+
             var adminNameFromCookie = req.cookies.authorized;
 
-            res.render('admin.jade', {admin: adminNameFromCookie}, function (err, data) {
+            res.render('admin.jade', {admin: adminNameFromCookie, isYaUser: isYaBrowser}, function (err, data) {
                 res.send(data);
             });
 
@@ -55,7 +65,6 @@ fs.readFile('messages.txt', {'encoding': 'utf-8'}, function (err, data) {
             var flag = true;
             if (!err && data.length !=0) {
                 admins.forEach(function (admin) {
-                    console.log('login: '+ admin.login + '== '+ req.body.login + ' pass: ' + admin.password + '==' + req.body.password);
                     if (admin.login == req.body.login && admin.password == req.body.password) {
                         flag = false;
                         res.cookie('authorized', admin.login);
@@ -64,8 +73,12 @@ fs.readFile('messages.txt', {'encoding': 'utf-8'}, function (err, data) {
                 });
                 if (flag) {res.send("wrong login or/and password");}
             } else {
-                res.send("wrong login or/and password bla");
+                res.send("wrong login or/and password");
             }
+        });
+        app.get('/signout', function(req, res) {
+            res.clearCookie('authorized');
+            res.redirect('/');
         });
     });
 
