@@ -116,11 +116,9 @@ function escapeSymbols(msg) {
 }
 
 function removeById(arr, id) {
-    for (var i = 0; i < arr.length; i++) {
-        var item = arr[i];
+    return arr.forEach(function (item, i) {
         if (item.id == id) {
-            arr.splice(i,1);
+            arr.splice(i, 1);
         }
-    }
-    return arr;
+    });
 }
