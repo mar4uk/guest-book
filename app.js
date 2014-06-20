@@ -130,9 +130,9 @@ function checkAuth(req, res, next) {
     if (auth) {
         var authVal = auth.split(':');
         fs.readFile('admin.txt', {'encoding': 'utf-8'}, function (err, data) {
+            var flag = true;
             if (!err && data.length !=0) {
                 var admins = parser(data);
-                var flag = true;
                 admins.forEach(function (admin) {
                     if (admin.login == authVal[0] && admin.password == authVal[1]) {
                         flag = false;
