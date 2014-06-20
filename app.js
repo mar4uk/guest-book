@@ -127,24 +127,25 @@ function removeById(arr, id) {
 
 function checkAuth(req, res, next) {
     var auth = req.cookies.auth;
-    if (auth) {
-        var authVal = auth.split(':');
-        fs.readFile('admin.txt', {'encoding': 'utf-8'}, function (err, data) {
-            var flag = true;
-            if (!err && data.length !=0) {
-                var admins = parser(data);
-                admins.forEach(function (admin) {
-                    if (admin.login == authVal[0] && admin.password == authVal[1]) {
-                        flag = false;
-                        req.isAdmin = true;
-                        req.adminName = authVal[0];
-                        next();
-                    }
-                });
-            }
-            if (flag) {next();}
-        });
-    } else {
+    if (!auth) {
         next();
+        return;
     }
+
+    var authVal = auth.split(':');
+    fs.readFile('admin.txt', {'encoding': 'utf-8'}, function (err, data) {
+        req.isAdmin = false;
+        if (!err && data.length !=0) {
+            var admins = parser(data);
+            admins.forEach(function (admin) {
+                if (admin.login == authVal[0] && admin.password == authVal[1]) {
+                    flag = false;
+                    req.isAdmin = true;
+                    req.adminName = authVal[0];
+                }
+            });
+        }
+
+        next();
+    });
 }
