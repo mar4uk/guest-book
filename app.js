@@ -4,6 +4,7 @@ var fs = require("fs");
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var serveStatic = require('serve-static');
+var Vow = require('vow');
 
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());
@@ -12,54 +13,47 @@ app.use(serveStatic('public'));
 app.engine('jade', require('jade').__express);
 
 app.get('/', checkAuth, function (req, res) {
-    fs.readFile('messages.txt', {'encoding': 'utf-8'}, function (err, data) {
+
+    fs.readdir('messages', function (err, files) {
         var messages = [];
-        if (!err && data.length !=0) {
-            messages = parser(data);
-        }
         var userAgent = req.get('User-Agent');
         var isYaBrowser = userAgent.indexOf('YaBrowser') !== -1;
         var yandexUser = isYaBrowser && 'Пользователь Яндекс Браузера';
         var adminName = yandexUser || req.adminName;
-        res.render('start.jade', {isAdmin: req.isAdmin, messages: messages, adminName: adminName}, function (err, data) {
-            res.send(data);
+
+        files = files.map(function (file) {
+            return 'messages/' + file;
+        });
+
+        Vow.all(readAllFiles(files, 'utf-8')).then(function (results) {
+            res.render('start.jade', {isAdmin: req.isAdmin, messages: results, adminName: adminName}, function (err, data) {
+                res.send(data);
+            });
         });
     });
 });
 
 app.get('/remove*', function(req, res) {
-    fs.readFile('messages.txt', {'encoding': 'utf-8'}, function (err, data) {
-        var messages = [];
-        if (!err && data.length !=0) {
-            messages = parser(data);
-        }
-        var msgIdToRemove = req.param('id');
-        removeById(messages, msgIdToRemove);
-        fs.writeFile('messages.txt', JSON.stringify(messages), function (err) {
-            if (err) throw err;
-            res.redirect('/');
-        });
+    var msgIdToRemove = req.param('id');
+    fs.unlink('messages/' + msgIdToRemove + '.txt', function (err) {
+        res.redirect('/');
     });
 });
 
 app.post('/submit', function(req, res) {
-    fs.readFile('messages.txt', {'encoding': 'utf-8'}, function (err, data) {
-        var messages = [];
-        if (!err && data.length !=0) {
-            messages = parser(data);
-        }
-        var date = new Date();
-        var etaloneDate = new Date(3600*24*1000);
-        var id = (date - etaloneDate).toString();
-        messages.push({
-            user: escapeSymbols(req.body.user),
-            message: escapeSymbols(req.body.message),
-            id: id
-        });
-        fs.writeFile('messages.txt', JSON.stringify(messages), function (err) {
-            if (err) throw err;
-            res.redirect('/');
-        });
+    var date = new Date();
+    var etaloneDate = new Date(3600*24*1000);
+    var id = (date - etaloneDate).toString();
+
+    var message = {
+        user: escapeSymbols(req.body.user),
+        message: escapeSymbols(req.body.message),
+        id: id
+    };
+
+    fs.writeFile('messages/'+id+'.txt', JSON.stringify(message), function (err) {
+        if (err) throw err;
+        res.redirect('/');
     });
 });
 
@@ -117,14 +111,6 @@ function escapeSymbols(msg) {
             .replace(/"/g, '&quot;');
 }
 
-function removeById(arr, id) {
-    arr.forEach(function (item, i) {
-        if (item.id == id) {
-            arr.splice(i, 1);
-        }
-    });
-}
-
 function checkAuth(req, res, next) {
     var auth = req.cookies.auth;
     if (!auth) {
@@ -148,4 +134,22 @@ function checkAuth(req, res, next) {
 
         next();
     });
+}
+
+function readFile(filename, encoding) {
+    var promise = Vow.promise();
+    fs.readFile(filename, encoding, function(err, data) {
+        if (err) return promise.reject(err);
+        promise.fulfill(parser(data));
+    });
+    return promise;
+}
+
+function readAllFiles(files, encoding) {
+    var arr = [];
+    for(var i = 0; i < files.length; i++) {
+
+        arr[i] = readFile(files[i], encoding);
+    }
+    return arr;
 }
