@@ -12,7 +12,7 @@ app.use(serveStatic('public'));
 app.engine('jade', require('jade').__express);
 
 
-app.get('/', function(req, res) {
+app.get('/', checkAuth(), function(req, res) {
     fs.readFile('messages.txt', {'encoding': 'utf-8'}, function (err, data) {
         var messages = [];
         if (!err && data.length !=0) {
@@ -21,9 +21,8 @@ app.get('/', function(req, res) {
         var userAgent = req.get('User-Agent');
         var isYaBrowser = userAgent.indexOf('YaBrowser') !== -1;
         var yandexUser = isYaBrowser && 'Пользователь Яндекс Браузера';
-        var adminNameFromCookie = req.cookies.authorized || yandexUser;
-
-        res.render('start.jade', { messages: messages, admin: adminNameFromCookie}, function (err, data) {
+        var adminName = req.adminName || yandexUser;
+        res.render('start.jade', {isAdmin: req.isAdmin, messages: messages, adminName: req.adminName}, function (err, data) {
             res.send(data);
         });
     });
@@ -65,22 +64,16 @@ app.post('/submit', function(req, res) {
     });
 });
 
-app.get('/admin', function(req, res) {
-    fs.readFile('admin.txt', {'encoding': 'utf-8'}, function (err, data) {
-        var admins = [];
-        if (!err && data.length !=0) {
-            admins = parser(data);
-        }
+app.get('/admin',checkAuth(), function(req, res) {
         var userAgent = req.get('User-Agent');
         var isYaBrowser = userAgent.indexOf('YaBrowser') !== -1;
+        var adminName = req.adminName;
 
-        var adminNameFromCookie = req.cookies.authorized;
-
-        res.render('admin.jade', {admin: adminNameFromCookie, isYaUser: isYaBrowser}, function (err, data) {
+        res.render('admin.jade', {isAdmin: req.isAdmin, adminName: req.adminName, isYaUser: isYaBrowser}, function (err, data) {
             res.send(data);
         });
-    });
-});
+    }
+);
 
 app.post('/authorize', function(req, res) {
     fs.readFile('admin.txt', {'encoding': 'utf-8'}, function (err, data) {
@@ -93,7 +86,7 @@ app.post('/authorize', function(req, res) {
             admins.forEach(function (admin) {
                 if (admin.login == req.body.login && admin.password == req.body.password) {
                     flag = false;
-                    res.cookie('authorized', admin.login);
+                    res.cookie('authorized', admin.login + ':' + admin.password);
                     res.redirect('/');
                 }
             });
@@ -131,4 +124,17 @@ function removeById(arr, id) {
             arr.splice(i, 1);
         }
     });
+}
+
+function checkAuth() {
+    return function(req, res, next) {
+        var authorized = req.cookies.authorized;
+        if (authorized) {
+            req.isAdmin = true;
+            req.adminName = authorized.split(':')[0];
+        } else {
+            req.isAdmin = false;
+        }
+        next();
+    }
 }

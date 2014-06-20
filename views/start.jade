@@ -6,9 +6,9 @@ html(lang="en")
   body
     h1 Start Page
 
-    if admin
+    if isAdmin
       p Привет,&nbsp;
-        span= admin
+        span= adminName
 
     form(method = 'post', action = '/submit')
       input(type = 'text', name = 'user', placeholder = 'имя')

@@ -2,5 +2,5 @@
     .user #{val.user}
         span :
     .message-text !{val.message}
-    if admin
+    if isAdmin
         a.remove(href = '/remove?id='+ val.id ) x
