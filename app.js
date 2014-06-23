@@ -12,7 +12,7 @@ app.use(serveStatic('public'));
 
 app.engine('jade', require('jade').__express);
 
-app.get('/', checkAuth, function (req, res) {
+app.get('/', checkAuth, function (req, res, next) {
     fs.open('messages', 'r', function (err) {
         if (err) {
             fs.mkdirSync('messages');
@@ -32,7 +32,8 @@ app.get('/', checkAuth, function (req, res) {
                 readAllFiles(files, 'utf-8'),
                 function (err, results) {
                     if (err) {
-                        throw err;
+                        next(err);
+                        return;
                     }
                     res.render('start.jade', {isAdmin: req.isAdmin, messages: results, adminName: adminName}, function (err, data) {
                         res.send(data);
@@ -43,14 +44,18 @@ app.get('/', checkAuth, function (req, res) {
     });
 });
 
-app.get('/remove*', function(req, res) {
+app.get('/remove*', function (req, res, next) {
     var msgIdToRemove = req.param('id');
     fs.unlink('messages/' + msgIdToRemove + '.txt', function (err) {
+        if (err) {
+            next(err);
+            return;
+        }
         res.redirect('/');
     });
 });
 
-app.post('/submit', function(req, res) {
+app.post('/submit', function (req, res, next) {
     var date = new Date();
     var etaloneDate = new Date(3600*24*1000);
     var id = (date - etaloneDate).toString();
@@ -63,30 +68,37 @@ app.post('/submit', function(req, res) {
 
     fs.writeFile('messages/'+id+'.txt', JSON.stringify(message), function (err) {
         if (err) {
-            throw err;
+            next(err);
+            return;
         }
         res.redirect('/');
     });
 });
 
-app.get('/admin', checkAuth, function(req, res) {
+app.get('/admin', checkAuth, function (req, res, next) {
     var userAgent = req.get('User-Agent');
     var isYaBrowser = userAgent.indexOf('YaBrowser') !== -1;
     var adminName = req.adminName;
 
     res.render('admin.jade', {isAdmin: req.isAdmin, adminName: req.adminName, isYaUser: isYaBrowser}, function (err, data) {
+        if (err) {
+            next(err);
+            return;
+        }
         res.send(data);
     });
 });
 
 app.post('/authorize', function(req, res) {
     fs.readFile('admin.txt', {'encoding': 'utf-8'}, function (err, data) {
-        var admins = [];
-        if (!err && data.length !=0) {
-            admins = parser(data);
+        if (err) {
+            next(err);
+            return;
         }
+        var admins = [];
         var flag = true;
         if (!err && data.length !=0) {
+            admins = parser(data);
             admins.forEach(function (admin) {
                 if (admin.login == req.body.login && admin.password == req.body.password) {
                     flag = false;
@@ -105,9 +117,15 @@ app.get('/signout', function(req, res) {
     res.redirect('/');
 });
 
+app.use(function (err, req, res, next) {
+    console.log(err);
+    res.end();
+});
+
 var server = app.listen(3000, function() {
     console.log('listened on localhost:3000');
 });
+
 
 function parser(str) {
     return JSON.parse(str);
