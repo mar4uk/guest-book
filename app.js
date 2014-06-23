@@ -150,7 +150,8 @@ function checkAuth(req, res, next) {
 function readFile(filename, encoding, callback) {
    fs.readFile(filename, encoding, function (err, data) {
         if (err) {
-            return callback(err);
+            callback(err);
+            return;
         }
         callback(null, parser(data));
     });
