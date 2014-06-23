@@ -4,7 +4,7 @@ var fs = require("fs");
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var serveStatic = require('serve-static');
-var vow = require('vow');
+var async = require('async');
 
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());
@@ -28,11 +28,14 @@ app.get('/', checkAuth, function (req, res) {
                 return 'messages/' + file;
             });
 
-            vow.all(readAllFiles(files, 'utf-8')).then(function (results) {
-                res.render('start.jade', {isAdmin: req.isAdmin, messages: results, adminName: adminName}, function (err, data) {
-                    res.send(data);
-                });
-            });
+            async.parallel(
+                readAllFiles(files, 'utf-8'),
+                function (err, results) {
+                    res.render('start.jade', {isAdmin: req.isAdmin, messages: results, adminName: adminName}, function (err, data) {
+                        res.send(data);
+                    });
+                }
+            );
         });
     });
 });
@@ -140,20 +143,16 @@ function checkAuth(req, res, next) {
     });
 }
 
-function readFile(filename, encoding) {
-    var deffered = vow.defer();
-    var promise = deffered.promise();
-
-    fs.readFile(filename, encoding, function(err, data) {
-        if (err) return deffered.reject(err);
-        deffered.resolve(parser(data));
+function readFile(filename, encoding, callback) {
+   fs.readFile(filename, encoding, function (err, data) {
+        callback(null, parser(data));
     });
-
-    return promise;
 }
 
 function readAllFiles(files, encoding) {
     return files.map(function (file, i) {
-        return readFile(file, encoding);
+        return function (callback) {
+            readFile(file, encoding, callback);
+        }
     });
 }
