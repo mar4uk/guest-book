@@ -149,10 +149,7 @@ function readFile(filename, encoding) {
 }
 
 function readAllFiles(files, encoding) {
-    var arr = [];
-    for(var i = 0; i < files.length; i++) {
-
-        arr[i] = readFile(files[i], encoding);
-    }
-    return arr;
+    return files.map(function (file, i) {
+        return readFile(file, encoding);
+    });
 }
