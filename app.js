@@ -4,7 +4,7 @@ var fs = require("fs");
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var serveStatic = require('serve-static');
-var Vow = require('vow');
+var vow = require('vow');
 
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());
@@ -25,7 +25,7 @@ app.get('/', checkAuth, function (req, res) {
             return 'messages/' + file;
         });
 
-        Vow.all(readAllFiles(files, 'utf-8')).then(function (results) {
+        vow.all(readAllFiles(files, 'utf-8')).then(function (results) {
             res.render('start.jade', {isAdmin: req.isAdmin, messages: results, adminName: adminName}, function (err, data) {
                 res.send(data);
             });
@@ -137,11 +137,14 @@ function checkAuth(req, res, next) {
 }
 
 function readFile(filename, encoding) {
-    var promise = Vow.promise();
+    var deffered = vow.defer();
+    var promise = deffered.promise();
+
     fs.readFile(filename, encoding, function(err, data) {
-        if (err) return promise.reject(err);
-        promise.fulfill(parser(data));
+        if (err) return deffered.reject(err);
+        deffered.resolve(parser(data));
     });
+
     return promise;
 }
 
