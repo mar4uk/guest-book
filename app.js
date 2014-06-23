@@ -31,6 +31,9 @@ app.get('/', checkAuth, function (req, res) {
             async.parallel(
                 readAllFiles(files, 'utf-8'),
                 function (err, results) {
+                    if (err) {
+                        throw err;
+                    }
                     res.render('start.jade', {isAdmin: req.isAdmin, messages: results, adminName: adminName}, function (err, data) {
                         res.send(data);
                     });
@@ -59,7 +62,9 @@ app.post('/submit', function(req, res) {
     };
 
     fs.writeFile('messages/'+id+'.txt', JSON.stringify(message), function (err) {
-        if (err) throw err;
+        if (err) {
+            throw err;
+        }
         res.redirect('/');
     });
 });
@@ -96,7 +101,6 @@ app.post('/authorize', function(req, res) {
     });
 });
 app.get('/signout', function(req, res) {
-    console.log('bla');
     res.clearCookie('auth');
     res.redirect('/');
 });
@@ -145,6 +149,9 @@ function checkAuth(req, res, next) {
 
 function readFile(filename, encoding, callback) {
    fs.readFile(filename, encoding, function (err, data) {
+        if (err) {
+            return callback(err);
+        }
         callback(null, parser(data));
     });
 }
