@@ -13,21 +13,25 @@ app.use(serveStatic('public'));
 app.engine('jade', require('jade').__express);
 
 app.get('/', checkAuth, function (req, res) {
+    fs.open('messages', 'r', function (err) {
+        if (err) {
+            fs.mkdirSync('messages');
+        }
+        fs.readdir('messages', function (err, files) {
+            var messages = [];
+            var userAgent = req.get('User-Agent');
+            var isYaBrowser = userAgent.indexOf('YaBrowser') !== -1;
+            var yandexUser = isYaBrowser && 'Пользователь Яндекс Браузера';
+            var adminName = yandexUser || req.adminName;
 
-    fs.readdir('messages', function (err, files) {
-        var messages = [];
-        var userAgent = req.get('User-Agent');
-        var isYaBrowser = userAgent.indexOf('YaBrowser') !== -1;
-        var yandexUser = isYaBrowser && 'Пользователь Яндекс Браузера';
-        var adminName = yandexUser || req.adminName;
+            files = files.map(function (file) {
+                return 'messages/' + file;
+            });
 
-        files = files.map(function (file) {
-            return 'messages/' + file;
-        });
-
-        vow.all(readAllFiles(files, 'utf-8')).then(function (results) {
-            res.render('start.jade', {isAdmin: req.isAdmin, messages: results, adminName: adminName}, function (err, data) {
-                res.send(data);
+            vow.all(readAllFiles(files, 'utf-8')).then(function (results) {
+                res.render('start.jade', {isAdmin: req.isAdmin, messages: results, adminName: adminName}, function (err, data) {
+                    res.send(data);
+                });
             });
         });
     });
